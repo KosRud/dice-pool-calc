@@ -1,5 +1,5 @@
 {
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint/eslint-plugin"],
   "parser": "@typescript-eslint/parser",
   "extends": ["plugin:@typescript-eslint/recommended-requiring-type-checking"],
   "settings": {

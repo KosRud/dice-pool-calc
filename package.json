@@ -2,7 +2,7 @@
   "name": "dice-pool-calc",
   "version": "0.0.2",
   "description": "",
-  "main": "./src/index.ts",
+  "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -33,5 +33,9 @@
   "dependencies": {
     "deepcopy": "^2.1.0",
     "fast-deep-equal": "^3.1.3"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./stats": "./stats.js"
   }
 }
