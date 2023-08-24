@@ -1,4 +1,4 @@
-# dice-calc
+# dice-pool-calc
 
 A typescript library for efficiently calculating dice probabilities with arbitrarily complex rules.
 
