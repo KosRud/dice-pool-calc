@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf -g ./build/* && rimraf -g ./docs/* && rimraf -g ./docs/.*",
-    "doc": "typedoc --out docs ./src/lib/*.ts ./src/main.ts",
+    "doc": "typedoc",
     "build": "rimraf -g ./build/* && tsc && tsc-alias && ncp ./package.json ./build/package.json",
     "start": "node ./build/main.js",
     "build:watch": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
