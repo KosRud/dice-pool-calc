@@ -9,6 +9,9 @@
     "tsc-alias": "^1.8.7",
     "typescript": "^5.1.6"
   },
+  "dependencies": {
+    "dice-pool-calc": "^0.0.5"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf -g ./build/* && rimraf -g ./docs/* && rimraf -g ./docs/.*",
@@ -19,7 +22,4 @@
     "doc:watch": "nodemon --exec \"npm run doc\" --watch ./src --ext js,ts",
     "nodemon": "concurrently --kill-others \"npm run build:watch\" \"nodemon ./build/main.js\""
   },
-  "dependencies": {
-    "dice-pool-calc": "^0.0.4"
-  }
 }
