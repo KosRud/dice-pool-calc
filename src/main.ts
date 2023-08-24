@@ -1,9 +1,6 @@
 import deepCopy from "deepcopy";
 import deepEqual from "fast-deep-equal";
 
-// TODO: opposed roll example
-// TODO: test importing from npm
-
 /**
 * This interface is a shortcut for {@link RollResult}[]. 
 
