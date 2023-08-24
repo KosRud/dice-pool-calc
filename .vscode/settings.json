@@ -1,0 +1,7 @@
+{
+  "[typescript]": { "editor.tabSize": 2, "editor.insertSpaces": true },
+  "[json]": { "editor.tabSize": 2, "editor.insertSpaces": true },
+  "[javascript]": { "editor.tabSize": 2, "editor.insertSpaces": true },
+  "prettier.tabWidth": 4,
+  "prettier.useTabs": false
+}

@@ -1,0 +1,39 @@
+{
+    "name": "dice-pool-calc",
+    "version": "1.0.0",
+    "description": "",
+    "main": "main.ts",
+    "type": "module",
+    "exports": {
+        "./stats": "./src/lib/stats.ts"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "clean": "rimraf -g ./build/* && rimraf -g ./docs/* && rimraf -g ./docs/.*",
+        "doc": "typedoc --out doc ./src/lib/*.ts ./src/main.ts",
+        "build": "rimraf -g ./build/* && tsc && tsc-alias",
+        "start": "node ./build/main.js",
+        "build:watch": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
+        "doc:watch": "nodemon --exec \"npm run doc\" --watch ./src --ext ts",
+        "nodemon": "concurrently --kill-others \"npm run build:watch\" \"nodemon ./build/main.js\""
+    },
+    "keywords": [],
+    "author": "",
+    "license": "BSD-3-Clause",
+    "devDependencies": {
+        "@types/node": "^20.5.0",
+        "@typescript-eslint/eslint-plugin": "^6.4.0",
+        "@typescript-eslint/parser": "^6.4.1",
+        "concurrently": "^8.2.1",
+        "nodemon": "^3.0.1",
+        "prettier": "^3.0.2",
+        "rimraf": "^5.0.1",
+        "tsc-alias": "^1.8.7",
+        "typedoc": "^0.24.8",
+        "typescript": "^5.1.6"
+    },
+    "dependencies": {
+        "deepcopy": "^2.1.0",
+        "fast-deep-equal": "^3.1.3"
+    }
+}
