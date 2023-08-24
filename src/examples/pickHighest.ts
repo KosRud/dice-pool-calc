@@ -1,5 +1,5 @@
 import * as stats from "stats";
-import { d, interpret, pool } from "main.js";
+import { interpret, nd, pool } from "main.js";
 
 // highest 4 from 8d6
 
@@ -16,7 +16,7 @@ const saveHighest4 = (accumulator: number[], dieValue: number) => {
 };
 
 // highest 4 as sorted array of numbers
-const highest4 = pool(saveHighest4, [], d(8, 6));
+const highest4 = pool(saveHighest4, [], nd(8, 6));
 
 // sum of highest 4
 const sumHighest4 = interpret(

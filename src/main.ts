@@ -146,19 +146,7 @@ export function pair<T>(
  * @param dieSize number of sides each die has
  * @returns
  */
-export function d(dieSize: number, numDice: number): Die<number>[];
-/**
- * Produce a single die like d6, d8, d20, etc.
- * @param dieSize number of sides
- * @returns
- */
-export function d(dieSize: number): Die<number>;
-export function d(dieSize: number, numDice?: number) {
-  if (numDice == undefined) {
-    return Array(dieSize)
-      .fill(0)
-      .map((_, i) => new RollResult(i + 1, 1 / dieSize));
-  }
+export function nd(numDice: number, dieSize: number) {
   return Array(numDice)
     .fill(0)
     .map(() =>
@@ -166,6 +154,17 @@ export function d(dieSize: number, numDice?: number) {
         .fill(0)
         .map((_, i) => new RollResult(i + 1, 1 / dieSize))
     );
+}
+
+/**
+ * Produce a single die like d6, d8, d20, etc.
+ * @param dieSize number of sides
+ * @returns
+ */
+export function d(dieSize: number) {
+  return Array(dieSize)
+    .fill(0)
+    .map((_, i) => new RollResult(i + 1, 1 / dieSize));
 }
 
 /**

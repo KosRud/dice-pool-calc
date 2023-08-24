@@ -1,5 +1,5 @@
 import * as stats from "stats";
-import { d, pool } from "main.js";
+import { nd, pool } from "main.js";
 
 // Count rolls of 5 or higher in a pool of 12d6
 
@@ -10,7 +10,7 @@ const countSuccess = (accumulator: number, dieValue: number) => {
   return accumulator;
 };
 
-const successPool = pool(countSuccess, 0, d(12, 6));
+const successPool = pool(countSuccess, 0, nd(12, 6));
 
 const frequencies = stats.frequencies(successPool);
 const average = stats.average(successPool);
