@@ -16,7 +16,7 @@ https://kosrud.github.io/dice-pool-calc/
 
 ## Examples
 
-https://github.com/KosRud/dice-pool-calc/tree/master/src/examples
+https://github.com/KosRud/dice-pool-calc-examples
 
 #### Random example: count 5,6 in 12d6
 
