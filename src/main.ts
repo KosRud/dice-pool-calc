@@ -31,48 +31,47 @@ export type AccumulatorCallback<T, U> = (accumulator: T, dieValue: U) => T;
  * @returns pool rolls aggregated as a single die
  */
 export function pool<T, U>(
-    accumulatorCallback: AccumulatorCallback<T, U>,
-    initial: T,
-    dice: RollResult<U>[][]
+  accumulatorCallback: AccumulatorCallback<T, U>,
+  initial: T,
+  dice: RollResult<U>[][]
 ) {
-    return dice.reduce(
-        (accumulatedOutcomes: Die<T>, die) => {
-            const newOutcomes: Die<T> = [];
+  return dice.reduce(
+    (accumulatedOutcomes: Die<T>, die) => {
+      const newOutcomes: Die<T> = [];
 
-            die.flatMap((dieResult) =>
-                accumulatedOutcomes.map(
-                    (outcome) =>
-                        new RollResult<T>(
-                            accumulatorCallback(
-                                deepCopy(outcome.value),
-                                dieResult.value
-                            ),
-                            outcome.probability * dieResult.probability
-                        )
-                )
-            ).forEach((rollResult) => {
-                injectRollRecord(newOutcomes, rollResult);
-            }, []);
+      die
+        .flatMap((dieResult) =>
+          accumulatedOutcomes.map(
+            (outcome) =>
+              new RollResult<T>(
+                accumulatorCallback(deepCopy(outcome.value), dieResult.value),
+                outcome.probability * dieResult.probability
+              )
+          )
+        )
+        .forEach((rollResult) => {
+          injectRollRecord(newOutcomes, rollResult);
+        }, []);
 
-            return newOutcomes;
-        },
-        [new RollResult(initial, 1)]
-    );
+      return newOutcomes;
+    },
+    [new RollResult(initial, 1)]
+  );
 }
 
 function injectRollRecord<T>(die: Die<T>, rollResult: RollResult<T>) {
-    const record =
-        // if it exists, pick it
-        die.find((existingRecord) =>
-            deepEqual(existingRecord.value, rollResult.value)
-        ) ?? // if it doesn't exist, create it
-        (() => {
-            const record = new RollResult(rollResult.value, 0);
-            die.push(record);
-            return record;
-        })();
+  const record =
+    // if it exists, pick it
+    die.find((existingRecord) =>
+      deepEqual(existingRecord.value, rollResult.value)
+    ) ?? // if it doesn't exist, create it
+    (() => {
+      const record = new RollResult(rollResult.value, 0);
+      die.push(record);
+      return record;
+    })();
 
-    record.probability += rollResult.probability;
+  record.probability += rollResult.probability;
 }
 
 /**
@@ -87,36 +86,30 @@ function injectRollRecord<T>(die: Die<T>, rollResult: RollResult<T>) {
 * @returns
 */
 export function interpret<T, U>(mapping: (value: T) => U, die: Die<T>) {
-    return die
-        .map(
-            (rollResult) =>
-                new RollResult<U>(
-                    mapping(rollResult.value),
-                    rollResult.probability
-                )
-        )
-        .reduce(
-            (
-                collapsedRollResults: RollResult<U>[],
-                rollResult: RollResult<U>
-            ) => {
-                const record =
-                    // if it exists, pick it
-                    collapsedRollResults.find((existingRecord) =>
-                        deepEqual(existingRecord.value, rollResult.value)
-                    ) ?? // if it doesn't exist, create it
-                    (() => {
-                        const record = new RollResult(rollResult.value, 0);
-                        collapsedRollResults.push(record);
-                        return record;
-                    })();
+  return die
+    .map(
+      (rollResult) =>
+        new RollResult<U>(mapping(rollResult.value), rollResult.probability)
+    )
+    .reduce(
+      (collapsedRollResults: RollResult<U>[], rollResult: RollResult<U>) => {
+        const record =
+          // if it exists, pick it
+          collapsedRollResults.find((existingRecord) =>
+            deepEqual(existingRecord.value, rollResult.value)
+          ) ?? // if it doesn't exist, create it
+          (() => {
+            const record = new RollResult(rollResult.value, 0);
+            collapsedRollResults.push(record);
+            return record;
+          })();
 
-                record.probability += rollResult.probability;
+        record.probability += rollResult.probability;
 
-                return collapsedRollResults;
-            },
-            []
-        );
+        return collapsedRollResults;
+      },
+      []
+    );
 }
 
 /**
@@ -128,23 +121,23 @@ export function interpret<T, U>(mapping: (value: T) => U, die: Die<T>) {
  * @returns
  */
 export function pair<T>(
-    combine: (first: T, second: T) => T,
-    first: Die<T>,
-    second: Die<T>
+  combine: (first: T, second: T) => T,
+  first: Die<T>,
+  second: Die<T>
 ) {
-    const result: Die<T> = [];
+  const result: Die<T> = [];
 
-    for (const rollA of first) {
-        for (const rollB of second) {
-            const value = combine(rollA.value, rollB.value);
-            injectRollRecord(
-                result,
-                new RollResult(value, rollA.probability * rollB.probability)
-            );
-        }
+  for (const rollA of first) {
+    for (const rollB of second) {
+      const value = combine(rollA.value, rollB.value);
+      injectRollRecord(
+        result,
+        new RollResult(value, rollA.probability * rollB.probability)
+      );
     }
+  }
 
-    return result;
+  return result;
 }
 
 /**
@@ -161,26 +154,26 @@ export function d(dieSize: number, numDice: number): Die<number>[];
  */
 export function d(dieSize: number): Die<number>;
 export function d(dieSize: number, numDice?: number) {
-    if (numDice == undefined) {
-        return Array(dieSize)
-            .fill(0)
-            .map((_, i) => new RollResult(i + 1, 1 / dieSize));
-    }
-    return Array(numDice)
+  if (numDice == undefined) {
+    return Array(dieSize)
+      .fill(0)
+      .map((_, i) => new RollResult(i + 1, 1 / dieSize));
+  }
+  return Array(numDice)
+    .fill(0)
+    .map(() =>
+      Array(dieSize)
         .fill(0)
-        .map(() =>
-            Array(dieSize)
-                .fill(0)
-                .map((_, i) => new RollResult(i + 1, 1 / dieSize))
-        );
+        .map((_, i) => new RollResult(i + 1, 1 / dieSize))
+    );
 }
 
 /**
  * A single side of a {@link Die} with an assigned value and probability.
  */
 export class RollResult<T> {
-    constructor(
-        public value: T,
-        public probability: number
-    ) {}
+  constructor(
+    public value: T,
+    public probability: number
+  ) {}
 }
