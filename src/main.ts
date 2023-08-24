@@ -76,11 +76,12 @@ function injectRollRecord<T>(die: Die<T>, rollResult: RollResult<T>) {
 }
 
 /**
-* Apply an arbitrary mapping function to the {@link Die} side values. Check out `examples/pickHighest.ts`.
+* Apply an arbitrary mapping function to the {@link Die} side values.
 
   This function combines all sides of a {@link Die} which mapped to the same value into a single side with combined probability. Do NOT use `Array.map()` on a {@link Die} instead of this function.
 
   Comparison between side values to determine if they are identical is performed using `deepEqual`.
+ * @see <a href="https://github.com/KosRud/dice-calc/blob/master/src/examples/pickHighest.ts">pickHighest.ts</a> example
 * @param mapping mapping function
 * @param die
 * @returns
@@ -118,15 +119,23 @@ export function interpret<T, U>(mapping: (value: T) => U, die: Die<T>) {
         );
 }
 
+/**
+ * Combines two dice using an arbitrary rule.
+ * @see <a href="https://github.com/KosRud/dice-calc/blob/master/src/examples/opposed.ts">opposed.ts</a> example
+ * @param combine function which determines how the {@link Die} values should be combined
+ * @param first first die
+ * @param second second die
+ * @returns
+ */
 export function pair<T>(
     combine: (first: T, second: T) => T,
-    dieA: Die<T>,
-    dieB: Die<T>
+    first: Die<T>,
+    second: Die<T>
 ) {
     const result: Die<T> = [];
 
-    for (const rollA of dieA) {
-        for (const rollB of dieB) {
+    for (const rollA of first) {
+        for (const rollB of second) {
             const value = combine(rollA.value, rollB.value);
             injectRollRecord(
                 result,
