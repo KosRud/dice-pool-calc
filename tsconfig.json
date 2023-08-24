@@ -10,7 +10,8 @@
     "sourceMap": true,
     "strictNullChecks": true,
     "typeRoots": ["./node_modules/@types"],
-    "baseUrl": "./src"
+    "baseUrl": "./src",
+    "declaration": true
   },
   "include": ["./src/**/*"]
 }

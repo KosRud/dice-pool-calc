@@ -1,12 +1,9 @@
 {
   "name": "dice-pool-calc",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
-  "main": "main.ts",
+  "main": "./src/index.ts",
   "type": "module",
-  "exports": {
-    "./stats": "./src/lib/stats.ts"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf -g ./build/* && rimraf -g ./docs/* && rimraf -g ./docs/.*",

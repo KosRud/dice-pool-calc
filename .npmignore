@@ -1,0 +1,7 @@
+/.github
+/.vscode
+/build
+/docs
+/examples
+
+.eslintrc.json
