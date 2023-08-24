@@ -12,7 +12,7 @@ A typescript library for efficiently calculating dice probabilities with arbitra
 
 ## Documentation
 
-https://kosrud.github.io/dice-calc/
+https://kosrud.github.io/dice-pool-calc/
 
 ## Examples
 
