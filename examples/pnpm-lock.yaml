@@ -6,13 +6,13 @@ settings:
 
 dependencies:
   dice-pool-calc:
-    specifier: ^0.0.3
-    version: 0.0.3
+    specifier: ^0.0.4
+    version: 0.0.4
 
 devDependencies:
   '@types/node':
     specifier: ^20.5.0
-    version: 20.5.0
+    version: 20.5.4
   concurrently:
     specifier: ^8.2.1
     version: 8.2.1
@@ -31,8 +31,8 @@ devDependencies:
 
 packages:
 
-  /@babel/runtime@7.22.10:
-    resolution: {integrity: sha512-21t/fkKLMZI4pqP2wlmsQAWnYW1PDyKyyUV4vCi+B25ydmdaYTKXPwCj0BzSUnZf4seIiYvSA3jcZ3gdsMFkLQ==}
+  /@babel/runtime@7.22.11:
+    resolution: {integrity: sha512-ee7jVNlWN09+KftVOu9n7S8gQzD/Z6hN/I8VBRXW4P1+Xe7kJGXMwu8vds4aGIMHZnNbdpSWCfZZtinytpcAvA==}
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.0
@@ -78,8 +78,8 @@ packages:
     dev: true
     optional: true
 
-  /@types/node@20.5.0:
-    resolution: {integrity: sha512-Mgq7eCtoTjT89FqNoTzzXg2XvCi5VMhRV6+I2aYanc6kQCBImeNaAYRs/DyoVqk1YEUJK5gN9VO7HRIdz4Wo3Q==}
+  /@types/node@20.5.4:
+    resolution: {integrity: sha512-Y9vbIAoM31djQZrPYjpTLo0XlaSwOIsrlfE3LpulZeRblttsLQRFRlBAppW0LOxyT3ALj2M5vU1ucQQayQH3jA==}
     dev: true
 
   /abbrev@1.1.1:
@@ -231,7 +231,7 @@ packages:
     resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
     engines: {node: '>=0.11'}
     dependencies:
-      '@babel/runtime': 7.22.10
+      '@babel/runtime': 7.22.11
     dev: true
 
   /debug@3.2.7(supports-color@5.5.0):
@@ -252,8 +252,8 @@ packages:
       type-detect: 4.0.8
     dev: false
 
-  /dice-pool-calc@0.0.3:
-    resolution: {integrity: sha512-l2SQSAzSY0ZTIKpzsV8o2kB8005wfuZjI/83uiG4Pyncm9GTTqKoGV3Tcs69C5+ylIpmopeSO5r1qzX1dVclAg==}
+  /dice-pool-calc@0.0.4:
+    resolution: {integrity: sha512-0VrEXj0Pgmqgt2+OV7c5OUUwM9yQzCQE1cBrfRTpAQHC4SXRa4RXH8pTS4ZSLvaiSUFtDrXt1TtynvLh/taNGw==}
     dependencies:
       deepcopy: 2.1.0
       fast-deep-equal: 3.1.3

@@ -1,8 +1,5 @@
 {
   "type": "module",
-  "dependencies": {
-    "dice-pool-calc": "^0.0.3"
-  },
   "license": "BSD-3-Clause",
   "devDependencies": {
     "@types/node": "^20.5.0",
@@ -21,5 +18,8 @@
     "build:watch": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
     "doc:watch": "nodemon --exec \"npm run doc\" --watch ./src --ext js,ts",
     "nodemon": "concurrently --kill-others \"npm run build:watch\" \"nodemon ./build/main.js\""
+  },
+  "dependencies": {
+    "dice-pool-calc": "^0.0.4"
   }
 }

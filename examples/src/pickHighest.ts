@@ -1,5 +1,5 @@
-import * as stats from "stats.js";
-import { interpret, nd, pool } from "index.js";
+import * as stats from "dice-pool-calc/stats";
+import { interpret, nd, pool } from "dice-pool-calc";
 
 // highest 4 from 8d6
 

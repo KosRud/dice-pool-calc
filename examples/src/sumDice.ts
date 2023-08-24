@@ -1,5 +1,5 @@
-import * as stats from "stats.js";
-import { nd, pool } from "index.js";
+import * as stats from "dice-pool-calc/stats";
+import { nd, pool } from "dice-pool-calc";
 
 // 3d4 + 2d6 + 1d8
 
