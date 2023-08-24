@@ -10,7 +10,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "dice-pool-calc": "^0.0.6"
+    "dice-pool-calc": "^0.0.7"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -21,5 +21,5 @@
     "build:watch": "concurrently --kill-others \"tsc -w\" \"tsc-alias -w\"",
     "doc:watch": "nodemon --exec \"npm run doc\" --watch ./src --ext js,ts",
     "nodemon": "concurrently --kill-others \"npm run build:watch\" \"nodemon ./build/main.js\""
-  },
+  }
 }
