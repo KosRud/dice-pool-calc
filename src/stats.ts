@@ -1,4 +1,4 @@
-import { Die } from "main.js";
+import { Die } from "index.js";
 import deepCopy from "deepcopy";
 
 /**

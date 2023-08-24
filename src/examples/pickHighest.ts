@@ -1,5 +1,5 @@
-import * as stats from "stats";
-import { interpret, nd, pool } from "main.js";
+import * as stats from "stats.js";
+import { interpret, nd, pool } from "index.js";
 
 // highest 4 from 8d6
 

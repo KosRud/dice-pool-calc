@@ -1,5 +1,5 @@
-import * as stats from "stats";
-import { nd, pool } from "main.js";
+import * as stats from "stats.js";
+import { nd, pool } from "index.js";
 
 // 3d4 + 2d6 + 1d8
 

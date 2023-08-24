@@ -1,5 +1,5 @@
-import * as stats from "stats";
-import { nd, pool } from "main.js";
+import * as stats from "stats.js";
+import { nd, pool } from "index.js";
 
 // Count rolls of 5 or higher in a pool of 12d6
 

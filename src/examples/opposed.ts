@@ -1,5 +1,5 @@
-import * as stats from "lib/stats.js";
-import { d, interpret, pair } from "main.js";
+import * as stats from "stats.js";
+import { d, interpret, pair } from "index.js";
 
 /*
   Each player rolls d20+mod
