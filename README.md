@@ -5,6 +5,11 @@ A typescript library for efficiently calculating dice probabilities with arbitra
 * easily handles hudreds of dice
 * enumerates all possible values
 
+## Links
+
+* [GitHub](https://github.com/KosRud/dice-pool-calc)
+* [NPM](https://www.npmjs.com/package/dice-pool-calc)
+
 ## Documentation
 
 https://kosrud.github.io/dice-calc/
