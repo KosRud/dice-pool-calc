@@ -2,174 +2,203 @@ import deepCopy from "deepcopy";
 import deepEqual from "fast-deep-equal";
 
 /**
-* This interface is a shortcut for {@link RollResult}[]. 
-
-  Conceptually, a {@link Die} has an arbitrary number of sides ({@link RollResult}), each having an assigned value and probability. It is expected that probabilities of all sides add up to 1.
-
-  A {@link Die} can be an actual physical die (d6, d12, etc.) or a "virtual" die created by combining multiple dice according to a certain rule: "sum of 4d6", "highest 2 of 3d8", etc.
-* @see {@link pool}
-* @see {@link pair}
-*/
-export interface Die<T> extends Array<RollResult<T>> {}
-
-/**
- * A rule for aggregating a {@link pool} of dice into a single {@link Die}.
+ * A rule for aggregating a pool of dice into a single {@link Die}.
+ * @see {@link Die.pool}
  * @callback AccumulatorCallback
  * @param accumulator accumulator variable, where the aggregated value is stored
- * @param dieValue next die value
+ * @param outcome next {@link Die} outcome
  */
-export type AccumulatorCallback<T, U> = (accumulator: T, dieValue: U) => T;
+export type AccumulatorCallback<T, U> = (accumulator: U, outcome: T) => U;
 
-/**
- * Combines a pool of dice into a single die using an arbitrary aggregation rule.
- * @callback combine
- * @param initial initial value of the accumulator variable
- * @param dice array of dice to combine into a pool
- * @returns pool rolls aggregated as a single die
- */
-export function pool<T, U>(
-  accumulatorCallback: AccumulatorCallback<T, U>,
-  initial: T,
-  dice: RollResult<U>[][]
-) {
-  return dice.reduce(
-    (accumulatedOutcomes: Die<T>, die) => {
-      const newOutcomes: Die<T> = [];
-
-      die
-        .flatMap((dieResult) =>
-          accumulatedOutcomes.map(
-            (outcome) =>
-              new RollResult<T>(
-                accumulatorCallback(deepCopy(outcome.value), dieResult.value),
-                outcome.probability * dieResult.probability
-              )
-          )
-        )
-        .forEach((rollResult) => {
-          injectRollRecord(newOutcomes, rollResult);
-        }, []);
-
-      return newOutcomes;
-    },
-    [new RollResult(initial, 1)]
-  );
-}
-
-function injectRollRecord<T>(die: Die<T>, rollResult: RollResult<T>) {
-  const record =
-    // if it exists, pick it
-    die.find((existingRecord) =>
-      deepEqual(existingRecord.value, rollResult.value)
-    ) ?? // if it doesn't exist, create it
-    (() => {
-      const record = new RollResult(rollResult.value, 0);
-      die.push(record);
-      return record;
-    })();
-
-  record.probability += rollResult.probability;
-}
-
-/**
-* Apply an arbitrary mapping function to the {@link Die} side values.
-
-  This function combines all sides of a {@link Die} which mapped to the same value into a single side with combined probability. Do NOT use `Array.map()` on a {@link Die} instead of this function.
-
-  Comparison between side values to determine if they are identical is performed using `deepEqual`.
- * @see <a href="https://github.com/KosRud/dice-calc/blob/master/src/examples/pickHighest.ts">pickHighest.ts</a> example
-* @param mapping mapping function
-* @param die
-* @returns
-*/
-export function interpret<T, U>(mapping: (value: T) => U, die: Die<T>) {
-  return die
-    .map(
-      (rollResult) =>
-        new RollResult<U>(mapping(rollResult.value), rollResult.probability)
-    )
-    .reduce(
-      (collapsedRollResults: RollResult<U>[], rollResult: RollResult<U>) => {
-        const record =
-          // if it exists, pick it
-          collapsedRollResults.find((existingRecord) =>
-            deepEqual(existingRecord.value, rollResult.value)
-          ) ?? // if it doesn't exist, create it
-          (() => {
-            const record = new RollResult(rollResult.value, 0);
-            collapsedRollResults.push(record);
-            return record;
-          })();
-
-        record.probability += rollResult.probability;
-
-        return collapsedRollResults;
-      },
-      []
-    );
-}
-
-/**
- * Combines two dice using an arbitrary rule.
- * @see <a href="https://github.com/KosRud/dice-calc/blob/master/src/examples/opposed.ts">opposed.ts</a> example
- * @param combine function which determines how the {@link Die} values should be combined
- * @param first first die
- * @param second second die
- * @returns
- */
-export function pair<T>(
-  combine: (first: T, second: T) => T,
-  first: Die<T>,
-  second: Die<T>
-) {
-  const result: Die<T> = [];
-
-  for (const rollA of first) {
-    for (const rollB of second) {
-      const value = combine(rollA.value, rollB.value);
-      injectRollRecord(
-        result,
-        new RollResult(value, rollA.probability * rollB.probability)
-      );
-    }
+export class Die<T> extends Map<T, number> {
+  constructor();
+  constructor(sides: Map<T, number>);
+  constructor(sides?: Map<T, number>) {
+    super(sides);
   }
 
-  return result;
-}
-
-/**
- * Produce an array of identical dice like 2d6, 5d8, etc.
- * @param numDice number of dice
- * @param dieSize number of sides each die has
- * @returns
- */
-export function nd(numDice: number, dieSize: number) {
-  return Array(numDice)
-    .fill(0)
-    .map(() =>
-      Array(dieSize)
-        .fill(0)
-        .map((_, i) => new RollResult(i + 1, 1 / dieSize))
+  /**
+   * Produce a single die: d6, d8, d20, etc. The number `numSides` can be any positive integer. Each side has an equal probability.
+   * @param numSides number of sides
+   * @returns
+   */
+  static d(numSides: number) {
+    return new Die(
+      new Map(
+        Array(numSides)
+          .fill(0)
+          .map((_, id) => [id + 1, 1 / numSides])
+      )
     );
-}
+  }
 
-/**
- * Produce a single die like d6, d8, d20, etc.
- * @param dieSize number of sides
- * @returns
- */
-export function d(dieSize: number) {
-  return Array(dieSize)
-    .fill(0)
-    .map((_, i) => new RollResult(i + 1, 1 / dieSize));
-}
+  /**
+   * Produce an array of identical dice: 2d6, 5d8, etc. The numbers `numDice` and `numSides` can be any positive integers. Each side has an equal probability.
+   * @param numDice number of dice
+   * @param numSides number of sides each die has
+   * @returns
+   */
+  static nd(numDice: number, numSides: number) {
+    return Array(numDice)
+      .fill(0)
+      .map(() => Die.d(numSides));
+  }
 
-/**
- * A single side of a {@link Die} with an assigned value and probability.
- */
-export class RollResult<T> {
-  constructor(
-    public value: T,
-    public probability: number
-  ) {}
+  /**
+   * Combines two dice using an arbitrary rule for interpreting the result.
+   * @see <a href="https://github.com/KosRud/dice-calc/blob/master/src/examples/opposed.ts">opposed.ts</a> example
+   * @param combine function which determines how the {@link Die} values should be combined
+   * @param dieA first die
+   * @param dieB second die
+   * @returns new combined die
+   */
+  static pair<T, U, V>(
+    combine: (first: T, second: U) => V,
+    dieA: Die<T>,
+    dieB: Die<U>
+  ) {
+    const result = new Die<V>();
+
+    for (const [outcomeA, probabilityA] of dieA.entries()) {
+      for (const [outcomeB, probabilityB] of dieB.entries()) {
+        const outcome = combine(outcomeA, outcomeB);
+        result.accumulate(outcome, probabilityA * probabilityB);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Combines a pool of dice into a single {@link Die} using an arbitrary aggregation rule.
+   * @callback combine
+   * @param initial initial value of the accumulator variable
+   * @param dice array of dice to combine into a pool
+   * @returns pool all possible outcome combinations aggregated as a single {@link Die}
+   */
+  static pool<T, U>(
+    accumulatorCallback: AccumulatorCallback<T, U>,
+    initial: U,
+    dice: Die<T>[]
+  ) {
+    return dice.reduce(
+      (accumulated: Die<U>, die) => {
+        const newAccumulated = new Die<U>();
+
+        Array.from(die.entries())
+          .flatMap((entry) => {
+            const [dieOutcome, dieProbability] = entry;
+            return Array.from(accumulated.entries()).map((accumulatedEntry) => {
+              const [accumulatedOutcome, accumulatedProbability] =
+                accumulatedEntry;
+              return {
+                outcome: accumulatorCallback(
+                  deepCopy(accumulatedOutcome),
+                  dieOutcome
+                ),
+                probability: accumulatedProbability * dieProbability,
+              };
+            });
+          })
+          .forEach((entry) =>
+            newAccumulated.accumulate(entry.outcome, entry.probability)
+          );
+
+        return newAccumulated;
+      },
+      new Die<U>(new Map<U, number>([[initial, 1]]))
+    );
+  }
+
+  /**
+  * Re-interprets the outcomes of a {@link Die} using an arbitrary mapping function.
+      
+    All outcomes which mapped to the same value are merged into a single outcome with combined probability. Comparison between outcomes is performed using <a href="https://www.npmjs.com/package/fast-deep-equal">fast-deep-equal</a>.
+  * @param f mapping function
+  * @returns new die with re-interpreted outcomes
+  */
+  interpret<U>(f: (outcome: T) => U) {
+    const result = new Die<U>();
+
+    Array.from(this.entries()).forEach((entry) => {
+      const [outcome, probability] = entry;
+      result.accumulate(f(outcome), probability);
+    });
+
+    return result;
+  }
+
+  /**
+  * Re-interprets the outcomes of a {@link Die} using an arbitrary mapping function. Unlike {@link Die.interpret}, this function can map each outcome to a distribution of multiple possible new outcomes, represented by a {@link Die}. The probabilities of all outcomes in this new {@link Die} should add up to 1, the {@link Die.reroll} function takes care of the conditional probabilities.
+   
+    All outcomes which mapped to the same value are merged into a single outcome with combined probability. Comparison between outcomes is performed using <a href="https://www.npmjs.com/package/fast-deep-equal">fast-deep-equal</a>.
+  * @param f mapping function
+  * @returns new die with re-interpreted outcomes
+  */
+  reroll<U>(f: (outcome: T) => Die<U>) {
+    return new Die<U>(
+      new Map(
+        Array.from(this.entries()).flatMap((entry) => {
+          const [oldOutcome, oldProbability] = entry;
+          return Array.from(f(oldOutcome).entries()).map((entry) => {
+            const [newOutcome, newProbability] = entry;
+            return [newOutcome, newProbability * oldProbability];
+          });
+        })
+      )
+    );
+  }
+
+  /**
+  * Sets the probability for the given outcome.
+    
+    Outcomes are compared using <a href="https://www.npmjs.com/package/fast-deep-equal">fast-deep-equal</a>. If the provided outcome is equal to one of the existing outcomes, its probability is updated instead of creating a new record.
+  * @param outcome
+  * @param probability
+  * @returns
+  */
+  override set(outcome: T, probability: number) {
+    for (const existingRecord of this.keys()) {
+      if (deepEqual(existingRecord, outcome)) {
+        super.set(existingRecord, probability);
+        return this;
+      }
+    }
+
+    this.set(outcome, probability);
+
+    return this;
+  }
+
+  /**
+  * Returns the probability of the given outcome, or `undefined` if the {@link Die} has no record for such outcome.
+
+    Outcomes are compared using <a href="https://www.npmjs.com/package/fast-deep-equal">fast-deep-equal</a>.
+  * @param outcome
+  * @returns probability of the given outcome
+  */
+  override get(outcome: T) {
+    for (const [existingOutcome, probability] of this.entries()) {
+      if (deepEqual(existingOutcome, outcome)) {
+        return probability;
+      }
+    }
+
+    return undefined;
+  }
+
+  private accumulate(outcome: T, probability: number) {
+    this.set(outcome, (this.get(outcome) ?? 0) + probability);
+  }
+
+  /**
+   * Ensures that probabilities of all outcomes of the {@link Die} add up to 1 (divides all probabilities by their sum). This is done <a href="https://en.wikipedia.org/wiki/In-place_algorithm">in place</a> without creating a new die.
+   */
+  normalize() {
+    const entries = Array.from(this.entries());
+    const sumProbability = entries.reduce((sum, entry) => sum + entry[1], 0);
+    for (const entry of this.entries()) {
+      this.set(entry[0], entry[1] / sumProbability);
+    }
+  }
 }
