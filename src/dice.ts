@@ -10,17 +10,11 @@ import deepEqual from "fast-deep-equal";
  */
 export type AccumulatorCallback<T, U> = (accumulator: U, outcome: T) => U;
 
-export class Die<T> {
-  private sides: Map<T, number>;
-
-  entries() {
-    return this.sides.entries();
-  }
-
+export class Die<T> extends Map<T, number> {
   constructor();
   constructor(sides: Map<T, number>);
   constructor(sides?: Map<T, number>) {
-    this.sides = sides ?? new Map<T, number>();
+    super(sides);
   }
 
   static d(numSides: number) {
@@ -98,23 +92,21 @@ export class Die<T> {
     );
   }
 
-  get(outcome: T) {
-    return this.sides.get(outcome);
-  }
-
   set(outcome: T, probability: number) {
-    for (const existingRecord of this.sides.keys()) {
+    for (const existingRecord of this.keys()) {
       if (deepEqual(existingRecord, outcome)) {
-        this.sides.set(existingRecord, probability);
-        return;
+        super.set(existingRecord, probability);
+        return this;
       }
     }
 
-    this.sides.set(outcome, probability);
+    this.set(outcome, probability);
+
+    return this;
   }
 
   private accumulate(outcome: T, probability: number) {
-    this.sides.set(outcome, (this.sides.get(outcome) ?? 0) + probability);
+    this.set(outcome, (this.get(outcome) ?? 0) + probability);
   }
 
   normalize() {
