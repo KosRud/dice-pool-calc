@@ -33,6 +33,23 @@ export class Die<T> extends Map<T, number> {
       .map(() => Die.d(numSides));
   }
 
+  static pair<T, U, V>(
+    combine: (first: T, second: U) => V,
+    dieA: Die<T>,
+    dieB: Die<U>
+  ) {
+    const result = new Die<V>();
+
+    for (const [outcomeA, probabilityA] of dieA.entries()) {
+      for (const [outcomeB, probabilityB] of dieB.entries()) {
+        const outcome = combine(outcomeA, outcomeB);
+        result.accumulate(outcome, probabilityA * probabilityB);
+      }
+    }
+
+    return result;
+  }
+
   static pool<T, U>(
     accumulatorCallback: AccumulatorCallback<T, U>,
     initial: U,
