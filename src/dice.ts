@@ -3,10 +3,10 @@ import deepEqual from "fast-deep-equal";
 
 /**
  * A rule for aggregating a pool of dice into a single {@link Die}.
+ * @see {@link Die.pool}
  * @callback AccumulatorCallback
  * @param accumulator accumulator variable, where the aggregated value is stored
- * @param dieValue next die value
- * @see {@link Die.pool}
+ * @param outcome next {@link Die} outcome
  */
 export type AccumulatorCallback<T, U> = (accumulator: U, outcome: T) => U;
 
