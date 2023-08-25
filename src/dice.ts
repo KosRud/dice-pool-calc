@@ -4,6 +4,22 @@ import deepEqual from "fast-deep-equal";
 export class Die<T> {
   constructor(private sides: Map<T, number>) {}
 
+  static d(numSides: number) {
+    return new Die(
+      new Map(
+        Array(numSides)
+          .fill(0)
+          .map((_, id) => [id + 1, 1 / numSides])
+      )
+    );
+  }
+
+  static nd(numDice: number, numSides: number) {
+    return Array(numDice)
+      .fill(0)
+      .map(() => Die.d(numSides));
+  }
+
   get(outcome: T) {
     return this.sides.get(outcome);
   }
