@@ -1,8 +1,22 @@
-import assert from "assert";
 import deepEqual from "fast-deep-equal";
 
+/**
+ * A rule for aggregating a pool of dice into a single {@link Die}.
+ * @callback AccumulatorCallback
+ * @param accumulator accumulator variable, where the aggregated value is stored
+ * @param dieValue next die value
+ * @see {@link Die.pool}
+ */
+export type AccumulatorCallback<T, U> = (accumulator: U, outcome: T) => U;
+
 export class Die<T> {
-  constructor(private sides: Map<T, number>) {}
+  private sides: Map<T, number>;
+
+  constructor();
+  constructor(sides: Map<T, number>);
+  constructor(sides?: Map<T, number>) {
+    this.sides = sides ?? new Map<T, number>();
+  }
 
   static d(numSides: number) {
     return new Die(
@@ -20,6 +34,42 @@ export class Die<T> {
       .map(() => Die.d(numSides));
   }
 
+  static pool<T, U>(
+    accumulatorCallback: AccumulatorCallback<T, U>,
+    initial: U,
+    dice: Die<T>[]
+  ) {
+    return dice.reduce(
+      (accumulated: Die<U>, die) => {
+        const newAccumulated = new Die<U>();
+
+        Array.from(die.sides.entries())
+          .flatMap((entry) => {
+            const [dieOutcome, dieProbability] = entry;
+            return Array.from(accumulated.sides.entries()).map(
+              (accumulatedEntry) => {
+                const [accumulatedOutcome, accumulatedProbability] =
+                  accumulatedEntry;
+                return {
+                  outcome: accumulatorCallback(
+                    accumulatedOutcome, // TODO is deepcopy needed here for safety?
+                    dieOutcome
+                  ),
+                  probability: accumulatedProbability * dieProbability,
+                };
+              }
+            );
+          })
+          .forEach((entry) =>
+            newAccumulated.accumulate(entry.outcome, entry.probability)
+          );
+
+        return newAccumulated;
+      },
+      new Die<U>(new Map<U, number>([[initial, 1]]))
+    );
+  }
+
   get(outcome: T) {
     return this.sides.get(outcome);
   }
@@ -35,17 +85,15 @@ export class Die<T> {
     this.sides.set(outcome, probability);
   }
 
-  accumulate(outcome: T, probability: number) {
+  private accumulate(outcome: T, probability: number) {
     this.sides.set(outcome, (this.sides.get(outcome) ?? 0) + probability);
   }
 
   normalize() {
     const entries = Array.from(this.sides.entries());
     const sumProbability = entries.reduce((sum, entry) => sum + entry[1], 0);
-    for (const outcome of this.sides.keys()) {
-      const probability = this.get(outcome);
-      assert(probability);
-      this.set(outcome, probability / sumProbability);
+    for (const entry of this.sides.entries()) {
+      this.set(entry[0], entry[1] / sumProbability);
     }
   }
 }
