@@ -1,5 +1,5 @@
-import deepEqual from "fast-deep-equal";
 import deepCopy from "deepcopy";
+import deepEqual from "fast-deep-equal";
 
 /**
  * A rule for aggregating a pool of dice into a single {@link Die}.
@@ -12,6 +12,10 @@ export type AccumulatorCallback<T, U> = (accumulator: U, outcome: T) => U;
 
 export class Die<T> {
   private sides: Map<T, number>;
+
+  entries() {
+    return this.sides.entries();
+  }
 
   constructor();
   constructor(sides: Map<T, number>);
@@ -44,22 +48,20 @@ export class Die<T> {
       (accumulated: Die<U>, die) => {
         const newAccumulated = new Die<U>();
 
-        Array.from(die.sides.entries())
+        Array.from(die.entries())
           .flatMap((entry) => {
             const [dieOutcome, dieProbability] = entry;
-            return Array.from(accumulated.sides.entries()).map(
-              (accumulatedEntry) => {
-                const [accumulatedOutcome, accumulatedProbability] =
-                  accumulatedEntry;
-                return {
-                  outcome: accumulatorCallback(
-                    deepCopy(accumulatedOutcome),
-                    dieOutcome
-                  ),
-                  probability: accumulatedProbability * dieProbability,
-                };
-              }
-            );
+            return Array.from(accumulated.entries()).map((accumulatedEntry) => {
+              const [accumulatedOutcome, accumulatedProbability] =
+                accumulatedEntry;
+              return {
+                outcome: accumulatorCallback(
+                  deepCopy(accumulatedOutcome),
+                  dieOutcome
+                ),
+                probability: accumulatedProbability * dieProbability,
+              };
+            });
           })
           .forEach((entry) =>
             newAccumulated.accumulate(entry.outcome, entry.probability)
@@ -68,6 +70,31 @@ export class Die<T> {
         return newAccumulated;
       },
       new Die<U>(new Map<U, number>([[initial, 1]]))
+    );
+  }
+
+  interpret<U>(f: (outcome: T) => U) {
+    return new Die<U>(
+      new Map(
+        Array.from(this.entries()).map((entry) => {
+          const [outcome, probability] = entry;
+          return [f(outcome), probability];
+        })
+      )
+    );
+  }
+
+  reroll<U>(f: (outcome: T) => Die<U>) {
+    return new Die<U>(
+      new Map(
+        Array.from(this.entries()).flatMap((entry) => {
+          const [oldOutcome, oldProbability] = entry;
+          return Array.from(f(oldOutcome).entries()).map((entry) => {
+            const [newOutcome, newProbability] = entry;
+            return [newOutcome, newProbability * oldProbability];
+          });
+        })
+      )
     );
   }
 
@@ -91,9 +118,9 @@ export class Die<T> {
   }
 
   normalize() {
-    const entries = Array.from(this.sides.entries());
+    const entries = Array.from(this.entries());
     const sumProbability = entries.reduce((sum, entry) => sum + entry[1], 0);
-    for (const entry of this.sides.entries()) {
+    for (const entry of this.entries()) {
       this.set(entry[0], entry[1] / sumProbability);
     }
   }
