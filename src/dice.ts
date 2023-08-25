@@ -1,4 +1,5 @@
 import deepEqual from "fast-deep-equal";
+import deepCopy from "deepcopy";
 
 /**
  * A rule for aggregating a pool of dice into a single {@link Die}.
@@ -52,7 +53,7 @@ export class Die<T> {
                   accumulatedEntry;
                 return {
                   outcome: accumulatorCallback(
-                    accumulatedOutcome, // TODO is deepcopy needed here for safety?
+                    deepCopy(accumulatedOutcome),
                     dieOutcome
                   ),
                   probability: accumulatedProbability * dieProbability,
