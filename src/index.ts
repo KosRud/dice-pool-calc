@@ -96,29 +96,40 @@ export class Die<T extends ValueType> {
   ) {
     return new Die(
       dice.reduce(
+        // sequentially record all possible combinations
+        // of the outcomes accumulated so far with the next die
         (accumulated: Map<U, number>, die) =>
+          // create a new die to record next round of outcomes
+          // produced by combining the new die with outcomes accumulated so far
           Map<U, number>().withMutations((newAccumulated: Map<U, number>) =>
             die.outcomes
-              .flatMap((dieProbability, dieOutcome) => {
-                return accumulated.map(
-                  (accumulatedProbability, accumulatedOutcome) => {
-                    return {
-                      outcome: accumulatorCallback(
-                        deepCopy(accumulatedOutcome),
-                        dieOutcome
-                      ),
-                      probability: accumulatedProbability * dieProbability,
-                    };
-                  }
-                );
-              })
+              .flatMap(
+                // for each outcome of the next die
+                (dieProbability, dieOutcome) => {
+                  return accumulated.map(
+                    // for each outcome of the current accumulation die
+                    (accumulatedProbability, accumulatedOutcome) => {
+                      return {
+                        // combine the outcomes
+                        outcome: accumulatorCallback(
+                          deepCopy(accumulatedOutcome),
+                          dieOutcome
+                        ),
+                        probability: accumulatedProbability * dieProbability,
+                      };
+                    }
+                  );
+                }
+              )
               .forEach((entry) =>
+                // and accumulate new outcomes in the new die
                 newAccumulated.set(
                   entry.outcome,
                   (newAccumulated.get(entry.outcome) ?? 0) + entry.probability
                 )
               )
           ),
+        // initial value of the accumulation die
         Map([[initial, 1]])
       )
     );
