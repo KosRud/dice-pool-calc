@@ -1,4 +1,4 @@
-import { Map, ValueObject } from "immutable";
+import { Map, Range, Seq, ValueObject } from "immutable";
 import deepCopy from "deepcopy";
 
 /**
@@ -24,7 +24,7 @@ export type AccumulatorCallback<T extends ValueType, U extends ValueType> = (
   Conceptually, any combination of dice is aggregated into a new {@link Die} which contains all possible outcomes of the combination. 
 */
 export class Die<T extends ValueType> {
-  outcomes: Map<T, number>;
+  public outcomes: Map<T, number>;
 
   constructor();
   constructor(outcomes: Map<T, number>);
@@ -54,9 +54,7 @@ export class Die<T extends ValueType> {
    * @returns
    */
   static nd(numDice: number, numSides: number) {
-    return Array(numDice)
-      .fill(0)
-      .map(() => Die.d(numSides));
+    return Range(0, numDice).map(() => Die.d(numSides));
   }
 
   /**
@@ -97,10 +95,10 @@ export class Die<T extends ValueType> {
   static pool<T extends ValueType, U extends ValueType>(
     accumulatorCallback: AccumulatorCallback<T, U>,
     initial: U,
-    dice: Die<T>[]
+    dice: Iterable<Die<T>>
   ) {
     return new Die(
-      dice.reduce(
+      Seq(dice).reduce(
         // sequentially record all possible combinations
         // of the outcomes accumulated so far with the next die
         (accumulated: Map<U, number>, die) =>
