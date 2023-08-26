@@ -4,7 +4,7 @@ import deepCopy from "deepcopy";
 /**
  * A type that can be compared by value using `Immutable.is()`
  */
-type ValueType = number | string | boolean | ValueObject;
+export type ValueType = number | string | boolean | ValueObject;
 
 /**
  * A rule for aggregating a pool of dice into a single {@link Die}.
@@ -18,6 +18,11 @@ export type AccumulatorCallback<T extends ValueType, U extends ValueType> = (
   outcome: T
 ) => U;
 
+/**
+* A {@link Die} is a wrapper over an immutable <a href="https://immutable-js.com/docs/v4.3.4/Map/">Map</a>, where keys correspond to possible outcomes of rolling the die, and values determine the probability of the respective outcome.
+
+  Conceptually, any combination of dice is aggregated into a new {@link Die} which contains all possible outcomes of the combination. 
+*/
 export class Die<T extends ValueType> {
   outcomes: Map<T, number>;
 
