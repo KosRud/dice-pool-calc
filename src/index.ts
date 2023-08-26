@@ -108,28 +108,27 @@ export class Die<T extends ValueType> {
               .flatMap(
                 // for each outcome of the next die
                 (dieProbability, dieOutcome) => {
-                  return accumulated.map(
+                  return accumulated.entrySeq().map(
                     // for each outcome of the current accumulation die
-                    (accumulatedProbability, accumulatedOutcome) => {
-                      return {
+                    (entry) => {
+                      const [accumulatedOutcome, accumulatedProbability] =
+                        entry;
+                      return [
                         // combine the outcomes
-                        outcome: accumulatorCallback(
-                          accumulatedOutcome,
-                          dieOutcome
-                        ),
-                        probability: accumulatedProbability * dieProbability,
-                      };
+                        accumulatorCallback(accumulatedOutcome, dieOutcome),
+                        accumulatedProbability * dieProbability,
+                      ];
                     }
                   );
                 }
               )
-              .forEach((entry) =>
+              .forEach((probability, outcome) => {
                 // and accumulate new outcomes in the new die
                 newAccumulated.set(
-                  entry.outcome,
-                  (newAccumulated.get(entry.outcome) ?? 0) + entry.probability
-                )
-              )
+                  outcome,
+                  (newAccumulated.get(outcome) ?? 0) + probability
+                );
+              })
           ),
         // initial value of the accumulation die
         Map([[initial, 1]])
