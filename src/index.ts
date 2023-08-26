@@ -1,5 +1,4 @@
 import { Map, Range, Seq, ValueObject } from "immutable";
-import deepCopy from "deepcopy";
 
 /**
  * A type that can be compared by value using `Immutable.is()`
@@ -115,7 +114,7 @@ export class Die<T extends ValueType> {
                       return {
                         // combine the outcomes
                         outcome: accumulatorCallback(
-                          deepCopy(accumulatedOutcome),
+                          accumulatedOutcome,
                           dieOutcome
                         ),
                         probability: accumulatedProbability * dieProbability,
