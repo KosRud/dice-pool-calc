@@ -1,6 +1,6 @@
 {
   "name": "dice-pool-calc",
-  "version": "0.0.10",
+  "version": "1.0.0-alpha.0",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -20,8 +20,8 @@
   "author": "KosRud",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "@types/node": "^20.5.0",
-    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@types/node": "^20.5.6",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
     "concurrently": "^8.2.1",
     "ncp": "^2.0.0",
@@ -29,12 +29,13 @@
     "prettier": "^3.0.2",
     "rimraf": "^5.0.1",
     "tsc-alias": "^1.8.7",
-    "typedoc": "^0.24.8",
-    "typescript": "^5.1.6"
+    "typedoc": "^0.25.0",
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "deepcopy": "^2.1.0",
-    "fast-deep-equal": "^3.1.3"
+    "fast-deep-equal": "^3.1.3",
+    "immutable": "5.0.0-beta.2"
   },
   "exports": {
     ".": "./index.js",

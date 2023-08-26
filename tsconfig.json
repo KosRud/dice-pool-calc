@@ -2,7 +2,7 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
-    "module": "ES2022",
+    "module": "Node16",
     "moduleResolution": "Node16",
     "esModuleInterop": true,
     "target": "ES2022",

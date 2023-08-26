@@ -1,44 +1,26 @@
 import { Die } from "index.js";
-import deepCopy from "deepcopy";
-
-/**
- * @ignore
- */
-export function normalize<T>(die: Die<T>) {
-  const total = die.reduce((total, result) => total + result.probability, 0);
-  return die.map((roll) => {
-    const copy = deepCopy(roll);
-    copy.probability /= total;
-    return copy;
-  });
-}
-
-export function frequencies<T>(die: Die<T>) {
-  return new Map(
-    normalize(die).map((rollResult) => [
-      rollResult.value,
-      rollResult.probability,
-    ])
-  );
-}
+import assert from "assert";
 
 export function average(die: Die<number>) {
-  return normalize(die).reduce(
-    (sum: number, rollResult) =>
-      sum + rollResult.value * rollResult.probability,
-    0
-  );
+  return die
+    .normalize()
+    .outcomes.reduce(
+      (sum, probability, outcome) => sum + outcome * probability,
+      0
+    );
 }
 
 export function median(die: Die<number>) {
-  const sorted = deepCopy(die).sort(
-    (rollA, rollB) => rollA.value - rollB.value
-  );
-  const middleIndex = Math.floor(sorted.length / 2);
+  const sorted = die.outcomes.sortBy((_, outcome) => outcome).keySeq();
+  const middleIndex = Math.floor(sorted.count() / 2);
 
-  if (sorted.length % 2) {
-    return sorted[middleIndex].value;
+  if (sorted.count() % 2) {
+    return sorted.get(middleIndex);
   } else {
-    return (sorted[middleIndex].value + sorted[middleIndex - 1].value) / 2;
+    const a = sorted.get(middleIndex),
+      b = sorted.get(middleIndex - 1);
+    assert(a);
+    assert(b);
+    return (a + b) / 2;
   }
 }
