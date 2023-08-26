@@ -1,18 +1,5 @@
-import { Die, ValueType } from "index.js";
+import { Die } from "index.js";
 import assert from "assert";
-
-/**
- * @ignore
- */
-export function normalize<T extends ValueType>(die: Die<T>) {
-  const sumProbability = die.outcomes.reduce(
-    (sum, probability) => sum + probability,
-    0
-  );
-  return new Die(
-    die.outcomes.map((probability) => probability / sumProbability)
-  );
-}
 
 export function average(die: Die<number>) {
   return die
