@@ -5,7 +5,10 @@ import deepCopy from "deepcopy";
  * @ignore
  */
 export function normalize<T>(die: Die<T>) {
-  const total = die.reduce((total, result) => total + result.probability, 0);
+  const total = Array.from(die.entries()).reduce(
+    (total, entry) => total + entry[1],
+    0
+  );
   return die.map((roll) => {
     const copy = deepCopy(roll);
     copy.probability /= total;

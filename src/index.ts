@@ -1,5 +1,10 @@
+import { Map, ValueObject } from "immutable";
 import deepCopy from "deepcopy";
-import deepEqual from "fast-deep-equal";
+
+/**
+ * A type that can be compared by value using `Immutable.is()`
+ */
+type ValueType = number | string | boolean | ValueObject;
 
 /**
  * A rule for aggregating a pool of dice into a single {@link Die}.
@@ -8,13 +13,18 @@ import deepEqual from "fast-deep-equal";
  * @param accumulator accumulator variable, where the aggregated value is stored
  * @param outcome next {@link Die} outcome
  */
-export type AccumulatorCallback<T, U> = (accumulator: U, outcome: T) => U;
+export type AccumulatorCallback<T extends ValueType, U extends ValueType> = (
+  accumulator: U,
+  outcome: T
+) => U;
 
-export class Die<T> extends Map<T, number> {
+export class Die<T extends ValueType> {
+  outcomes: Map<T, number>;
+
   constructor();
-  constructor(sides: Map<T, number>);
-  constructor(sides?: Map<T, number>) {
-    super(sides);
+  constructor(outcomes: Map<T, number>);
+  constructor(outcomes?: Map<T, number>) {
+    this.outcomes = outcomes ?? Map();
   }
 
   /**
@@ -24,7 +34,7 @@ export class Die<T> extends Map<T, number> {
    */
   static d(numSides: number) {
     return new Die(
-      new Map(
+      Map(
         Array(numSides)
           .fill(0)
           .map((_, id) => [id + 1, 1 / numSides])
@@ -52,21 +62,24 @@ export class Die<T> extends Map<T, number> {
    * @param dieB second die
    * @returns new combined die
    */
-  static pair<T, U, V>(
+  static pair<T extends ValueType, U extends ValueType, V extends ValueType>(
     combine: (first: T, second: U) => V,
     dieA: Die<T>,
     dieB: Die<U>
   ) {
-    const result = new Die<V>();
-
-    for (const [outcomeA, probabilityA] of dieA.entries()) {
-      for (const [outcomeB, probabilityB] of dieB.entries()) {
-        const outcome = combine(outcomeA, outcomeB);
-        result.accumulate(outcome, probabilityA * probabilityB);
-      }
-    }
-
-    return result;
+    return new Die(
+      Map<V, number>().withMutations((newOutcomes) => {
+        for (const [outcomeA, probabilityA] of dieA.outcomes.entries()) {
+          for (const [outcomeB, probabilityB] of dieB.outcomes.entries()) {
+            const outcome = combine(outcomeA, outcomeB);
+            newOutcomes.set(
+              outcome,
+              (newOutcomes.get(outcome) ?? 0) + probabilityA * probabilityB
+            );
+          }
+        }
+      })
+    );
   }
 
   /**
@@ -76,37 +89,40 @@ export class Die<T> extends Map<T, number> {
    * @param dice array of dice to combine into a pool
    * @returns pool all possible outcome combinations aggregated as a single {@link Die}
    */
-  static pool<T, U>(
+  static pool<T extends ValueType, U extends ValueType>(
     accumulatorCallback: AccumulatorCallback<T, U>,
     initial: U,
     dice: Die<T>[]
   ) {
-    return dice.reduce(
-      (accumulated: Die<U>, die) => {
-        const newAccumulated = new Die<U>();
-
-        Array.from(die.entries())
-          .flatMap((entry) => {
-            const [dieOutcome, dieProbability] = entry;
-            return Array.from(accumulated.entries()).map((accumulatedEntry) => {
-              const [accumulatedOutcome, accumulatedProbability] =
-                accumulatedEntry;
-              return {
-                outcome: accumulatorCallback(
-                  deepCopy(accumulatedOutcome),
-                  dieOutcome
-                ),
-                probability: accumulatedProbability * dieProbability,
-              };
-            });
-          })
-          .forEach((entry) =>
-            newAccumulated.accumulate(entry.outcome, entry.probability)
+    return new Die(
+      dice.reduce(
+        (accumulated: Map<U, number>, die) => {
+          return Map<U, number>().withMutations(
+            (newAccumulated: Map<U, number>) =>
+              die.outcomes
+                .flatMap((dieProbability, dieOutcome) => {
+                  return accumulated.map(
+                    (accumulatedProbability, accumulatedOutcome) => {
+                      return {
+                        outcome: accumulatorCallback(
+                          deepCopy(accumulatedOutcome),
+                          dieOutcome
+                        ),
+                        probability: accumulatedProbability * dieProbability,
+                      };
+                    }
+                  );
+                })
+                .forEach((entry) =>
+                  newAccumulated.set(
+                    entry.outcome,
+                    (newAccumulated.get(entry.outcome) ?? 0) + entry.probability
+                  )
+                )
           );
-
-        return newAccumulated;
-      },
-      new Die<U>(new Map<U, number>([[initial, 1]]))
+        },
+        Map([[initial, 1]])
+      )
     );
   }
 
@@ -117,15 +133,18 @@ export class Die<T> extends Map<T, number> {
   * @param f mapping function
   * @returns new die with re-interpreted outcomes
   */
-  interpret<U>(f: (outcome: T) => U) {
-    const result = new Die<U>();
-
-    Array.from(this.entries()).forEach((entry) => {
-      const [outcome, probability] = entry;
-      result.accumulate(f(outcome), probability);
-    });
-
-    return result;
+  interpret<U extends ValueType>(f: (outcome: T) => U) {
+    return new Die(
+      Map<U, number>().withMutations((accumulated) =>
+        this.outcomes.forEach((probability, outcome) => {
+          const interpretedOutcome = f(outcome);
+          accumulated.set(
+            interpretedOutcome,
+            (accumulated.get(interpretedOutcome) ?? 0) + probability
+          );
+        })
+      )
+    );
   }
 
   /**
@@ -135,70 +154,30 @@ export class Die<T> extends Map<T, number> {
   * @param f mapping function
   * @returns new die with re-interpreted outcomes
   */
-  reroll<U>(f: (outcome: T) => Die<U>) {
-    return new Die<U>(
-      new Map(
-        Array.from(this.entries()).flatMap((entry) => {
-          const [oldOutcome, oldProbability] = entry;
-          return Array.from(f(oldOutcome).entries()).map((entry) => {
-            const [newOutcome, newProbability] = entry;
-            return [newOutcome, newProbability * oldProbability];
-          });
-        })
-      )
+  reroll<U extends ValueType>(f: (outcome: T) => Die<U>) {
+    return Map<U, number>().withMutations((accumulated) =>
+      this.outcomes.flatMap((oldProbability, oldOutcome) => {
+        return f(oldOutcome).outcomes.map((newProbability, newOutcome) => {
+          accumulated.set(
+            newOutcome,
+            (accumulated.get(newOutcome) ?? 0) + newProbability * oldProbability
+          );
+        });
+      })
     );
-  }
-
-  /**
-  * Sets the probability for the given outcome.
-    
-    Outcomes are compared using <a href="https://www.npmjs.com/package/fast-deep-equal">fast-deep-equal</a>. If the provided outcome is equal to one of the existing outcomes, its probability is updated instead of creating a new record.
-  * @param outcome
-  * @param probability
-  * @returns
-  */
-  override set(outcome: T, probability: number) {
-    for (const existingRecord of this.keys()) {
-      if (deepEqual(existingRecord, outcome)) {
-        super.set(existingRecord, probability);
-        return this;
-      }
-    }
-
-    this.set(outcome, probability);
-
-    return this;
-  }
-
-  /**
-  * Returns the probability of the given outcome, or `undefined` if the {@link Die} has no record for such outcome.
-
-    Outcomes are compared using <a href="https://www.npmjs.com/package/fast-deep-equal">fast-deep-equal</a>.
-  * @param outcome
-  * @returns probability of the given outcome
-  */
-  override get(outcome: T) {
-    for (const [existingOutcome, probability] of this.entries()) {
-      if (deepEqual(existingOutcome, outcome)) {
-        return probability;
-      }
-    }
-
-    return undefined;
-  }
-
-  private accumulate(outcome: T, probability: number) {
-    this.set(outcome, (this.get(outcome) ?? 0) + probability);
   }
 
   /**
    * Ensures that probabilities of all outcomes of the {@link Die} add up to 1 (divides all probabilities by their sum). This is done <a href="https://en.wikipedia.org/wiki/In-place_algorithm">in place</a> without creating a new die.
    */
   normalize() {
-    const entries = Array.from(this.entries());
-    const sumProbability = entries.reduce((sum, entry) => sum + entry[1], 0);
-    for (const entry of this.entries()) {
-      this.set(entry[0], entry[1] / sumProbability);
-    }
+    const sumProbability = this.outcomes.reduce(
+      (sumProbability, probability) => sumProbability + probability,
+      0
+    );
+
+    return new Die(
+      this.outcomes.map((probability) => probability / sumProbability)
+    );
   }
 }
