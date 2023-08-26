@@ -96,31 +96,29 @@ export class Die<T extends ValueType> {
   ) {
     return new Die(
       dice.reduce(
-        (accumulated: Map<U, number>, die) => {
-          return Map<U, number>().withMutations(
-            (newAccumulated: Map<U, number>) =>
-              die.outcomes
-                .flatMap((dieProbability, dieOutcome) => {
-                  return accumulated.map(
-                    (accumulatedProbability, accumulatedOutcome) => {
-                      return {
-                        outcome: accumulatorCallback(
-                          deepCopy(accumulatedOutcome),
-                          dieOutcome
-                        ),
-                        probability: accumulatedProbability * dieProbability,
-                      };
-                    }
-                  );
-                })
-                .forEach((entry) =>
-                  newAccumulated.set(
-                    entry.outcome,
-                    (newAccumulated.get(entry.outcome) ?? 0) + entry.probability
-                  )
+        (accumulated: Map<U, number>, die) =>
+          Map<U, number>().withMutations((newAccumulated: Map<U, number>) =>
+            die.outcomes
+              .flatMap((dieProbability, dieOutcome) => {
+                return accumulated.map(
+                  (accumulatedProbability, accumulatedOutcome) => {
+                    return {
+                      outcome: accumulatorCallback(
+                        deepCopy(accumulatedOutcome),
+                        dieOutcome
+                      ),
+                      probability: accumulatedProbability * dieProbability,
+                    };
+                  }
+                );
+              })
+              .forEach((entry) =>
+                newAccumulated.set(
+                  entry.outcome,
+                  (newAccumulated.get(entry.outcome) ?? 0) + entry.probability
                 )
-          );
-        },
+              )
+          ),
         Map([[initial, 1]])
       )
     );
