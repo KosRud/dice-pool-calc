@@ -85,6 +85,15 @@ export class Die<T extends ValueType> {
   }
 
   /**
+   * Returns a new {@link Die} which always produces the same outcome.
+   * @param outcome
+   * @returns
+   */
+  static singleOutcome<T extends ValueType>(outcome: T) {
+    return new Die(Map([[outcome, 1]]));
+  }
+
+  /**
    * Combines a pool of dice into a single {@link Die} using an arbitrary aggregation rule.
    * @callback combine
    * @param initial initial value of the accumulator variable
