@@ -161,15 +161,18 @@ export class Die<T extends ValueType> {
   * @returns new die with re-interpreted outcomes
   */
   reroll<U extends ValueType>(f: (outcome: T) => Die<U>) {
-    return Map<U, number>().withMutations((accumulated) =>
-      this.outcomes.flatMap((oldProbability, oldOutcome) => {
-        return f(oldOutcome).outcomes.map((newProbability, newOutcome) => {
-          accumulated.set(
-            newOutcome,
-            (accumulated.get(newOutcome) ?? 0) + newProbability * oldProbability
-          );
-        });
-      })
+    return new Die(
+      Map<U, number>().withMutations((accumulated) =>
+        this.outcomes.flatMap((oldProbability, oldOutcome) => {
+          return f(oldOutcome).outcomes.map((newProbability, newOutcome) => {
+            accumulated.set(
+              newOutcome,
+              (accumulated.get(newOutcome) ?? 0) +
+                newProbability * oldProbability
+            );
+          });
+        })
+      )
     );
   }
 
