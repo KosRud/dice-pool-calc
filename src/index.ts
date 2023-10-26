@@ -72,6 +72,13 @@ export class Die<T extends ValueType> {
     return new Die(Die.pairMap(combine, dieA.outcomes, dieB.outcomes));
   }
 
+  /**
+   * Internal function used in {@link Die.pair `Die.pair()`}.
+   * @param combine function which determines how the outcomes should be combined
+   * @param dieA outcomes of the first die
+   * @param dieB outcomes of the second die
+   * @returns new combined outcomes
+   */
   private static pairMap<
     T extends ValueType,
     U extends ValueType,
@@ -127,7 +134,7 @@ export class Die<T extends ValueType> {
   /**
   * Re-interprets the outcomes of a {@link Die} using an arbitrary mapping function.
       
-    All outcomes which mapped to the same value are merged into a single outcome with combined probability. Comparison between outcomes is performed using <a href="https://www.npmjs.com/package/fast-deep-equal">fast-deep-equal</a>.
+    All outcomes which mapped to the same value are merged into a single outcome with combined probability.
   * @param f mapping function
   * @returns new die with re-interpreted outcomes
   */
