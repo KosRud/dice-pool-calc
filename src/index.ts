@@ -69,19 +69,36 @@ export class Die<T extends ValueType> {
     dieA: Die<T>,
     dieB: Die<U>
   ) {
-    return new Die(
-      Map<V, number>().withMutations((newOutcomes) => {
-        for (const [outcomeA, probabilityA] of dieA.outcomes.entries()) {
-          for (const [outcomeB, probabilityB] of dieB.outcomes.entries()) {
-            const outcome = combine(outcomeA, outcomeB);
-            newOutcomes.set(
-              outcome,
-              (newOutcomes.get(outcome) ?? 0) + probabilityA * probabilityB
-            );
-          }
+    return new Die(Die.pairMap(combine, dieA.outcomes, dieB.outcomes));
+  }
+
+  /**
+   * Internal function used in {@link Die.pair `Die.pair()`}.
+   * @param combine function which determines how the outcomes should be combined
+   * @param dieA outcomes of the first die
+   * @param dieB outcomes of the second die
+   * @returns new combined outcomes
+   */
+  private static pairMap<
+    T extends ValueType,
+    U extends ValueType,
+    V extends ValueType,
+  >(
+    combine: (first: T, second: U) => V,
+    dieA: Map<T, number>,
+    dieB: Map<U, number>
+  ) {
+    return Map<V, number>().withMutations((newOutcomes) => {
+      for (const [outcomeA, probabilityA] of dieA.entries()) {
+        for (const [outcomeB, probabilityB] of dieB.entries()) {
+          const outcome = combine(outcomeA, outcomeB);
+          newOutcomes.set(
+            outcome,
+            (newOutcomes.get(outcome) ?? 0) + probabilityA * probabilityB
+          );
         }
-      })
-    );
+      }
+    });
   }
 
   /**
@@ -107,35 +124,8 @@ export class Die<T extends ValueType> {
   ) {
     return new Die(
       Seq(dice).reduce(
-        // sequentially record all possible combinations
-        // of the outcomes accumulated so far with the next die
         (accumulated: Map<U, number>, die) =>
-          // create a new die to record next round of outcomes
-          // produced by combining the new die with outcomes accumulated so far
-          Map<U, number>().withMutations((newAccumulated: Map<U, number>) =>
-            die.outcomes
-              .entrySeq()
-              .flatMap(
-                // for each outcome of the next die
-                (dieEntry: [outcome: T, probability: number]) =>
-                  accumulated.entrySeq().map(
-                    // for each outcome of the current accumulation die
-                    (accumulatedentry: [outcome: U, probability: number]) => [
-                      // combine the outcomes
-                      accumulatorCallback(accumulatedentry[0], dieEntry[0]),
-                      accumulatedentry[1] * dieEntry[1],
-                    ]
-                  )
-              )
-              .forEach((entry: [outcome: U, probability: number]) =>
-                // and accumulate new outcomes in the new die
-                newAccumulated.set(
-                  entry[0],
-                  (newAccumulated.get(entry[0]) ?? 0) + entry[1]
-                )
-              )
-          ),
-        // initial value of the accumulation die
+          Die.pairMap<U, T, U>(accumulatorCallback, accumulated, die.outcomes),
         Map([[initial, 1]])
       )
     );
@@ -144,7 +134,7 @@ export class Die<T extends ValueType> {
   /**
   * Re-interprets the outcomes of a {@link Die} using an arbitrary mapping function.
       
-    All outcomes which mapped to the same value are merged into a single outcome with combined probability. Comparison between outcomes is performed using <a href="https://www.npmjs.com/package/fast-deep-equal">fast-deep-equal</a>.
+    All outcomes which mapped to the same value are merged into a single outcome with combined probability.
   * @param f mapping function
   * @returns new die with re-interpreted outcomes
   */
