@@ -69,19 +69,29 @@ export class Die<T extends ValueType> {
     dieA: Die<T>,
     dieB: Die<U>
   ) {
-    return new Die(
-      Map<V, number>().withMutations((newOutcomes) => {
-        for (const [outcomeA, probabilityA] of dieA.outcomes.entries()) {
-          for (const [outcomeB, probabilityB] of dieB.outcomes.entries()) {
-            const outcome = combine(outcomeA, outcomeB);
-            newOutcomes.set(
-              outcome,
-              (newOutcomes.get(outcome) ?? 0) + probabilityA * probabilityB
-            );
-          }
+    return new Die(Die.pairMap(combine, dieA.outcomes, dieB.outcomes));
+  }
+
+  private static pairMap<
+    T extends ValueType,
+    U extends ValueType,
+    V extends ValueType,
+  >(
+    combine: (first: T, second: U) => V,
+    dieA: Map<T, number>,
+    dieB: Map<U, number>
+  ) {
+    return Map<V, number>().withMutations((newOutcomes) => {
+      for (const [outcomeA, probabilityA] of dieA.entries()) {
+        for (const [outcomeB, probabilityB] of dieB.entries()) {
+          const outcome = combine(outcomeA, outcomeB);
+          newOutcomes.set(
+            outcome,
+            (newOutcomes.get(outcome) ?? 0) + probabilityA * probabilityB
+          );
         }
-      })
-    );
+      }
+    });
   }
 
   /**
@@ -108,8 +118,7 @@ export class Die<T extends ValueType> {
     return new Die(
       Seq(dice).reduce(
         (accumulated: Map<U, number>, die) =>
-          Die.pair<U, T, U>(accumulatorCallback, new Die(accumulated), die)
-            .outcomes,
+          Die.pairMap<U, T, U>(accumulatorCallback, accumulated, die.outcomes),
         Map([[initial, 1]])
       )
     );
